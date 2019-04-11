@@ -8,41 +8,43 @@ RUN_SCRIPT = 'run_video.py'
 RANDOM_SEED = 42
 RUN_TIME = 280  # sec
 ABR_ALGO = ['fastMPC', 'robustMPC', 'BOLA', 'RL']
-REPEAT_TIME = 10
+#ABR_ALGO = ['RL']
+REPEAT_TIME = 1
 
 
 def main():
 
-	np.random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
 
-	with open('./chrome_retry_log', 'wb') as log:
-		log.write('chrome retry log\n')
-		log.flush()
+    with open('./chrome_retry_log', 'wb') as log:
+        log.write('chrome retry log\n')
+        log.flush()
 
-		for rt in xrange(REPEAT_TIME):
-			np.random.shuffle(ABR_ALGO)
-			for abr_algo in ABR_ALGO:
+        for rt in xrange(REPEAT_TIME):
+            np.random.shuffle(ABR_ALGO)
+            for abr_algo in ABR_ALGO:
 
-				while True:
+                while True:
 
-					script = 'python ' + RUN_SCRIPT + ' ' + \
-							  abr_algo + ' ' + str(RUN_TIME) + ' ' + str(rt)
-					
-					proc = subprocess.Popen(script,
-							  stdout=subprocess.PIPE, 
-							  stderr=subprocess.PIPE, 
-							  shell=True)
+                    script = 'python ' + RUN_SCRIPT + ' ' + \
+                              abr_algo + ' ' + str(RUN_TIME) + ' ' + str(rt)
+                    
+                    proc = subprocess.Popen(script,
+                              stdout=subprocess.PIPE, 
+                              stderr=subprocess.PIPE, 
+                              shell=True)
 
-					(out, err) = proc.communicate()
+                    (out, err) = proc.communicate()
+                    print (out, err)
 
-					if out == 'done\n':
-						break
-					else:
-						log.write(abr_algo + '_' + str(rt) + '\n')
-						log.write(out + '\n')
-						log.flush()
+                    if out == 'done\n':
+                        break
+                    else:
+                        log.write(abr_algo + '_' + str(rt) + '\n')
+                        log.write(out + '\n')
+                        log.flush()
 
 
 
 if __name__ == '__main__':
-	main()
+    main()
