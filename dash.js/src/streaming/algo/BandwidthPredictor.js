@@ -66,7 +66,7 @@ MediaPlayer.dependencies.BandwidthPredictor = function () {
     var self = this,
     tmpIndex,
     tmpError = 0,
-    tmpSum = 0,
+    //tmpSum = 0,
     maxError = 0;
 
     if (pastThroughput.length <= 1) { // not enough data
@@ -92,7 +92,7 @@ MediaPlayer.dependencies.BandwidthPredictor = function () {
     },
 
     getMultiStepPredictionError = function (lastRequested, steps) {
-    var self = this,
+    var //self = this,
     tmpIndex,
     tmpError = 0,
     maxError = 0;
@@ -121,7 +121,7 @@ MediaPlayer.dependencies.BandwidthPredictor = function () {
     },
 
     getCombinedPredictionError = function (lastRequested) {
-    var self = this,
+    var //self = this,
     tmpError = 0,
     maxError = 0;
     for (var steps = 1; steps<= 5; steps++) {

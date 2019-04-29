@@ -20,6 +20,8 @@ def main():
 		R = 0
 		with open(RESULTS_FOLDER + log_file, 'rb') as f:
 			for line in f:
+                                if len(line.strip()) == 0:
+                                    continue
 				parse = line.split()
 				R += float(parse[-1])
 		
@@ -79,7 +81,7 @@ def main():
 	
 	plt.ylabel('total reward')
 	plt.xlabel('trace index')
-	plt.show()
+	plt.savefig("load_results.png")
 
 
 if __name__ == '__main__':

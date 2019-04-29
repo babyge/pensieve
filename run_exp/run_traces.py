@@ -35,7 +35,8 @@ def main():
 
 			(out, err) = proc.communicate()
 
-			if out == 'done\n':
+                        #print out, err
+			if out.endswith('done\n'):
 				break
 			else:
 				with open('./chrome_retry_log', 'ab') as log:

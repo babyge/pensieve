@@ -12,8 +12,9 @@ with open('./chrome_retry_log', 'wb') as f:
 
 os.system('sudo sysctl -w net.ipv4.ip_forward=1')
 
-ip_data = json.loads(urllib.urlopen("http://ip.jsontest.com/").read())
-ip = str(ip_data['ip'])
+#ip_data = json.loads(urllib.urlopen("http://ip.jsontest.com/").read())
+#ip = str(ip_data['ip'])
+ip = "10.243.38.88"
 
 ABR_ALGO = 'BB'
 PROCESS_ID = 0
@@ -57,11 +58,11 @@ proc_FESTIVE = subprocess.Popen(command_FESTIVE, stdout=subprocess.PIPE, shell=T
 time.sleep(0.1)
 proc_BOLA = subprocess.Popen(command_BOLA, stdout=subprocess.PIPE, shell=True)
 time.sleep(0.1)
-proc_fastMPC = subprocess.Popen(command_fastMPC, stdout=subprocess.PIPE, shell=True)
+#proc_fastMPC = subprocess.Popen(command_fastMPC, stdout=subprocess.PIPE, shell=True)
 time.sleep(0.1)
-proc_robustMPC = subprocess.Popen(command_robustMPC, stdout=subprocess.PIPE, shell=True)
+#proc_robustMPC = subprocess.Popen(command_robustMPC, stdout=subprocess.PIPE, shell=True)
 time.sleep(0.1)
-proc_RL = subprocess.Popen(command_RL, stdout=subprocess.PIPE, shell=True)
+#proc_RL = subprocess.Popen(command_RL, stdout=subprocess.PIPE, shell=True)
 time.sleep(0.1)
 
 proc_BB.wait()
@@ -69,6 +70,6 @@ proc_RB.wait()
 proc_FIXED.wait()
 proc_FESTIVE.wait()
 proc_BOLA.wait()
-proc_fastMPC.wait()
-proc_robustMPC.wait()
-proc_RL.wait()
+#proc_fastMPC.wait()
+#proc_robustMPC.wait()
+#proc_RL.wait()
