@@ -22,17 +22,18 @@ float M_IN_K = 1000;
 float BITS_IN_BYTE = 8;
 int RANDOM_SEED = 42;
 float VIDEO_CHUNCK_LEN = 4000;  // (ms), every time add this amount to buffer
-unsigned int BITRATE_LEVELS = 6;
-unsigned int TOTAL_VIDEO_CHUNCK = 49;
+unsigned int BITRATE_LEVELS = 10;
+unsigned int TOTAL_VIDEO_CHUNCK = 70;
 float PACKET_PAYLOAD_PORTION = 0.95;
 unsigned int LINK_RTT = 80;  // millisec
 unsigned int PACKET_SIZE = 1500;  // bytes
 float DT = 0.05;  // time granularity
 float BUFFER_THRESH = 60;  // sec, max buffer limit
-static const int VIDEO_BIT_RATE[] = {300, 750, 1200, 1850, 2850, 4300};  // Kbps
+//static const int VIDEO_BIT_RATE[] = {300, 750, 1200, 1850, 2850, 4300};  // Kbps
+static const int VIDEO_BIT_RATE[] = {200, 400, 600, 800, 1000, 1500, 2500, 4000, 8000, 12000};  // Kbps
 unsigned int DEFAULT_QUALITY = 1;
-unsigned int MAX_QUALITY = 5;
-float REBUF_PENALTY = 4.3;  // 1 sec rebuffering -> 3 Mbps
+unsigned int MAX_QUALITY = 9;
+float REBUF_PENALTY = 12;  // 1 sec rebuffering -> 3 Mbps
 int SMOOTH_PENALTY = 1;
 float INVALID_DOWNLOAD_TIME = -1;
 std::string COOKED_TRACE_FOLDER = "./cooked_traces/";
@@ -93,7 +94,7 @@ ALL_COOKED_TIME_BW get_all_cooked_time_bw(std::string path) {
 			std::string file_name = "";
 			file_name += COOKED_TRACE_FOLDER;
 			file_name += entry->d_name;
-			printf("%s\n", file_name.c_str());
+			//printf("%s\n", file_name.c_str());
 
 			std::ifstream in_file(file_name);
 			std::string line;
@@ -128,7 +129,8 @@ std::vector<std::vector<unsigned int> > get_video_sizes(std::string path) {
 	
 	std::vector<std::vector<unsigned int> > video_sizes;
 	for(int bit_rate = 0; bit_rate < BITRATE_LEVELS; bit_rate ++) {
-		std::ifstream in_file(path + std::to_string(bit_rate));
+        std::cout << path + std::to_string(VIDEO_BIT_RATE[bit_rate]) << std::endl;
+		std::ifstream in_file(path + std::to_string(VIDEO_BIT_RATE[bit_rate]));
 		std::string line;
 		std::vector<unsigned int> video_size;
 		if (in_file.is_open())
@@ -142,6 +144,12 @@ std::vector<std::vector<unsigned int> > get_video_sizes(std::string path) {
 		}
 		video_sizes.push_back(video_size);
 	}
+    //for (int i = 0; i < BITRATE_LEVELS; i++)
+    //{
+    //    for (int j = 0; j < video_sizes[i].size(); j++)
+            //printf("%d\n", video_sizes[i][j]);
+        //printf("\n");
+    //}
 	return video_sizes;
 }
 
@@ -155,15 +163,20 @@ float restore_or_compute_download_time(
 	std::vector<float>& quan_bw,
 	float dt,
 	std::vector<unsigned int>& video_size) {
+    //printf("in restore_or_compute_download_time\n");
 
+    //printf("all_download_time size is: %d\n", all_download_time.size());
+    //printf("all_download_time[0] size is: %d\n", all_download_time[0].size());
 	if (all_download_time[video_chunk][quan_t_idx][bit_rate] != \
 		INVALID_DOWNLOAD_TIME) {
+        //printf("out restore_or_compute_download_time\n");
 		return all_download_time[video_chunk][quan_t_idx][bit_rate];
 	} else {
 		unsigned int chunk_size = video_size[video_chunk];
 		float downloaded = 0;
 		float time_spent = 0;
 		unsigned int quan_idx = quan_t_idx;
+        //printf("About to go into the while loop\n");
 		while (true) {
 			float curr_bw = quan_bw[quan_idx];  // in Mbit/sec
 			downloaded += curr_bw * dt / BITS_IN_BYTE * B_IN_MB * PACKET_PAYLOAD_PORTION;
@@ -174,8 +187,10 @@ float restore_or_compute_download_time(
 			time_spent += dt;  // lower bound the time spent
 		}
 		all_download_time[video_chunk][quan_t_idx][bit_rate] = time_spent;
+        //printf("out restore_or_compute_download_time\n");
 		return time_spent;
 	}
+    //printf("out restore_or_compute_download_time\n");
 }
 
 
@@ -289,6 +304,7 @@ int main() {
 		// -----------------------------------------
 
 		unsigned int total_time_pt = ceil(cooked_time[cooked_time.size() - 1] / DT);
+        //printf("get total_time_pt done, %u\n", total_time_pt);
 		
 		std::vector<float> quan_time(total_time_pt + 1);
 		float d_t = floor(cooked_time[0]);
@@ -307,6 +323,7 @@ int main() {
 			quan_bw[i] = cooked_bw[curr_time_idx];
 		}
 		
+        //printf("Step 1 done\n");
 		// ----------------------------------------
 		// step 2: cap the max time and max buffer
 		// ----------------------------------------
@@ -325,6 +342,7 @@ int main() {
 
 		unsigned int t_max_idx = ceil(t_max / DT);
 		unsigned int b_max_idx = t_max_idx;
+        //printf("parameters are %u, %f, %u, %u, %u\n", max_video_contents, t_portion, t_max, t_max_idx, b_max_idx);
 
 		for (int i = 1; i < ceil(t_portion); i ++) {
 			float last_quan_time = quan_time[quan_time.size() - 1];
@@ -345,12 +363,14 @@ int main() {
 		}
 		
 		assert(quan_time[quan_time.size() - 1] >= t_max);
+        //printf("Step 2 done\n");
 
 		// -----------------------------------------------------------
 		// (optional) step 3: pre-compute the download time of chunks
 		// download_time(chunk_idx, quan_time, bit_rate)
 		// -----------------------------------------------------------
 
+        //printf("all_download_time's size is %d, %d, %d\n", TOTAL_VIDEO_CHUNCK, t_max_idx, BITRATE_LEVELS);
 		std::vector<std::vector<std::vector<float> > > all_download_time(
 			TOTAL_VIDEO_CHUNCK,
 			std::vector<std::vector<float> >(
@@ -368,6 +388,7 @@ int main() {
 				}
 			}
 		}
+        //printf("Step 3 done\n");
 
 		// -----------------------------
 		// step 4: dynamic programming
